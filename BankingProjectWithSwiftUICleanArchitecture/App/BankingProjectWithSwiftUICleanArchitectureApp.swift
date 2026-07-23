@@ -12,10 +12,10 @@ struct BankingProjectWithSwiftUICleanArchitectureApp: App {
     var body: some Scene {
         WindowGroup {
             // PREVIOUS MOCK:
-            // let repository = MockDashboardRepository()
+             let repository = MockDashboardRepository()
             
             // NEW LIVE NETWORK:
-            let repository = LiveDashboardRepository()
+//            let repository = LiveDashboardRepository()
             
             let useCase = FetchDashboardUseCase(repository: repository)
             let viewModel = DashboardViewModel(fetchDashboardUseCase: useCase)

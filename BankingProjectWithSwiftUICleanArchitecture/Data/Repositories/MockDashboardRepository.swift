@@ -15,17 +15,40 @@ public final class MockDashboardRepository: DashboardRepositoryProtocol {
     public init() {}
     
     public func fetchCustomerAccounts() -> AnyPublisher<[BankingAccount], Error> {
-        // We simulate a network delay of 1.5 seconds, then return fake data
-        let fakeAccounts = [
-            BankingAccount(id: "1", accountName: "Premium Savings", accountNumber: "9876543210", availableBalance: 150000.50, accountType: .savings),
-            BankingAccount(id: "2", accountName: "Salary Checking", accountNumber: "1122334455", availableBalance: 5500.00, accountType: .checking),
-            // This negative account should be filtered out by our Domain Use Case!
-            BankingAccount(id: "3", accountName: "Old Checking", accountNumber: "9999999999", availableBalance: -50.0, accountType: .checking)
-        ]
+        var generatedAccounts: [BankingAccount] = [BankingAccount]()
+        var usedAccountNumbers = Set<String>()
         
-        return Just(fakeAccounts)
+        let firstNames = ["Liam", "Olivia", "Noah", "Emma", "Oliver", "Ava", "Elijah", "Charlotte"]
+        let lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller"]
+        
+        // Loop 100 times to create the data
+        for ids in 1...100 {
+            let randomName = "\(firstNames.randomElement()!) \(lastNames.randomElement()!)"
+            
+            // Loop until a truly unique random 8-digit account number is found
+            var uniqueNumber = ""
+            repeat {
+                // STAFF FIX: Use Int.random(in:) for large ranges to prevent memory spikes
+                uniqueNumber = String(Int.random(in: 10_000_000...99_999_999))
+            } while usedAccountNumbers.contains(uniqueNumber)
+            
+            usedAccountNumbers.insert(uniqueNumber)
+            
+            // Note: Ensure your `AccountType` enum actually has a `.checking` case defined!
+            let newAccount = BankingAccount(
+                id: "\(ids)",
+                accountName: randomName,
+                accountNumber: "\(uniqueNumber)",
+                availableBalance: 150000.50,
+                accountType: ids % 2 == 0 ? .savings : .checking
+            )
+            generatedAccounts.append(newAccount)
+        }
+        
+        return Just(generatedAccounts)
             .setFailureType(to: Error.self)
-            .delay(for: .seconds(1.5), scheduler: DispatchQueue.main)
+            // STAFF FIX: DispatchQueue strictly requires Ints. Use .milliseconds(1500) for 1.5 seconds.
+            .delay(for: .milliseconds(1500), scheduler: DispatchQueue.main)
             .eraseToAnyPublisher()
     }
 }
